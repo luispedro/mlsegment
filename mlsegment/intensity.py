@@ -3,13 +3,28 @@
 # License: MIT
 
 from __future__ import division
+import numpy as np
+import mahotas
+from mahotas.thresholding import otsu, rc
 
-def intensity(img, solution, intensity_model):
-    labeled, _ = solution
-    bg = img[labeled == 0].ravel()
-    objects = img[labeled > 0].ravel()
+def _corrcoef(x,y):
+    return np.corrcoef(x,y)[0,1]
+
+def intensity_features(img, binary):
+    bg = img[~binary].ravel()
+    objects = img[binary].ravel()
     bstd = bg.std()
     if bstd == 0:
         bstd = 1
-    return (bg.mean()-objects.mean())/bstd
+    separation = (bg.mean()-objects.mean())/bstd
+    corrcoefs = []
+    for T in (img.mean(), img.mean() + img.std(), otsu(img), rc(img)):
+        corrcoefs.append(_corrcoef(binary, img > T))
+    return np.concatenate( ([separation], corrcoefs) )
+
+
+def intensity(img, solution, intensity_model):
+    labeled, _ = solution
+    features = intensity_features(img, labeled > 0)
+    return intensity_model.apply(features)
 
