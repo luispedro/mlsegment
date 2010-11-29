@@ -3,6 +3,12 @@
 # License: MIT
 
 from __future__ import division
+import numpy as np
+from pyslic.features.hullfeatures import hullfeatures
+
+def shape_features(binimg):
+    size = binimg.sum()
+    return np.concatenate(([size], hullfeatures(binimg)))
 
 def shapes(img, solution, shape_model):
     labeled, n_regions = solution
