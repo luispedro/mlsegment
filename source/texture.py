@@ -3,6 +3,13 @@
 # License: MIT
 
 from __future__ import division
+from mahotas import features
+
+def texture_features(texture):
+    '''
+    features = texture_features(texture)
+    '''
+    return features.lbp(img, 8, 12, ignore_zeros=True)
 
 def textures(img, solution, texture_model):
     labeled,n_regions = solution
