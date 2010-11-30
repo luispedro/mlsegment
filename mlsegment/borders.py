@@ -33,7 +33,7 @@ def extract1(img, solution):
                 yield border_features(img, labeled, sobelvalues, i, j, border)
 
 def borders(img, solution, iborder_model):
-    return np.mean([bborder_model.apply(feats) for feats in extract1(img, solution)])
+    return np.mean([iborder_model.apply(feats) for feats in extract1(img, solution)])
 
 
 #def borders_background(img, solution, bborder_model):

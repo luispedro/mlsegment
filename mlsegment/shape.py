@@ -17,5 +17,5 @@ def extract1(img, solution):
         yield shape_features(shape)
 
 def shapes(img, solution, shape_model):
-    return sum(shape_model.apply(feats) for feats in extract1(img, solution))
+    return np.sum([shape_model(feats) for feats in extract1(img, solution)])
 
