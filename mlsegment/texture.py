@@ -11,10 +11,11 @@ def texture_features(texture):
     '''
     return features.lbp(texture, 8, 12, ignore_zeros=True)
 
-def textures(img, solution, texture_model):
-    labeled,n_regions = solution
-    val = 0.
+def extract1(img, solution):
+    features = []
     for i in xrange(n_regions):
         texture = img * (labeled == (i+1))
-        val += texture_model.apply(texture_features(texture))
-    return val
+        yield texture_features(texture)
+
+def textures(img, solution, texture_model):
+    return sum(texture_model.apply(feats) for feats in extract1(texture, solution))

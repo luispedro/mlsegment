@@ -10,7 +10,9 @@ from mahotas.thresholding import otsu, rc
 def _corrcoef(x,y):
     return np.corrcoef(x,y)[0,1]
 
-def intensity_features(img, binary):
+def extract1(img, solution):
+    labeled, _ = solution
+    binary = (labeled > 0)
     bg = img[~binary].ravel()
     objects = img[binary].ravel()
     bstd = bg.std()
@@ -24,7 +26,5 @@ def intensity_features(img, binary):
 
 
 def intensity(img, solution, intensity_model):
-    labeled, _ = solution
-    features = intensity_features(img, labeled > 0)
-    return intensity_model.apply(features)
+    return intensity_model.apply(extract1(img, solution))
 

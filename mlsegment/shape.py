@@ -10,11 +10,13 @@ def shape_features(binimg):
     size = binimg.sum()
     return np.concatenate(([size], hullfeatures(binimg)))
 
-def shapes(img, solution, shape_model):
+def extract1(img, solution):
     labeled, n_regions = solution
-    val = 0.
     for i in xrange(n_regions):
         shape = (labeled == (i+1))
-        val += shape_model.apply(shape_features(shape))
+        yield shape_features(shape)
     return val
+
+def shapes(img, solution, shape_model):
+    return sum(shape_model.apply(feats) for feats in extract1(img, solution))
 

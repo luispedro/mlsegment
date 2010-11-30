@@ -18,7 +18,7 @@ def border_features(img, labeled, sobelvalues, i, j, border):
     separation = np.abs(pixels_i.mean() - pixels_j.mean())/(pixels_i.std() + pixels_j.std() + 40/pixels_i.size + 40/pixels_j.size)
     return np.array([intensity, edginess,separation])
 
-def borders(img, solution, iborder_model):
+def extract1(img, solution):
     labeled, n_regions = solution
     nborders = 0.
     filter = np.ones((3,3), dtype=labeled.dtype)
@@ -30,15 +30,16 @@ def borders(img, solution, iborder_model):
             output.fill(False)
             border = borders(labeled, filter, output, i, j, 0)
             if border is not None:
-                val += bborder_model.apply(border_features(img, labeled, sobelvalues, i, j, border))
-                nborders += 1.
-    return val/nborders
+                yield border_features(img, labeled, sobelvalues, i, j, border)
+
+def borders(img, solution, iborder_model):
+    return np.mean([bborder_model.apply(feats) for feats in extract1(img, solution)])
 
 
-def borders_background(img, solution, bborder_model):
-    labeled, n_regions = solution
-    val = 0.
-    for i in xrange(n_regions):
-        border = border_for(solution, i, 0)
-        val += bborder_model.apply(border_features(img, border))
-    return val
+#def borders_background(img, solution, bborder_model):
+#    labeled, n_regions = solution
+#    val = 0.
+#    for i in xrange(n_regions):
+#        border = border_for(solution, i, 0)
+#        val += bborder_model.apply(border_features(img, border))
+#    return val

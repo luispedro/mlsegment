@@ -3,12 +3,16 @@
 # License: MIT
 
 from __future__ import division
+import texture
+import shape
+import intensity
+import borders
 
 def evaluate(img, solution, parameters, models):
     texture_model, shape_model, intensity_model, iborder_model, bborder_model = models
     Lt,Li,Lib,Lbb = parameters
-    return Lt*textures(img, solution, texture_model) + \
-        Ls*shapes(img, solution, shape_model) + \
-        Li*intensity(img, solution, intensity_model) + \
-        Lib*borders(img, solution, iborder_model) + \
-        Lbb*borders_background(img, solution, bborder_model)
+    return Lt*texture.apply(img, solution, texture_model) + \
+        Ls*shape.apply(img, solution, shape_model) + \
+        Li*intensity.apply(img, solution, intensity_model) + \
+        Lib*borders.apply(img, solution, iborder_model)
+        # Lbb*borders_background(img, solution, bborder_model)
