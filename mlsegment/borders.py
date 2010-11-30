@@ -4,7 +4,7 @@
 
 from __future__ import division
 import numpy as np
-from _borders import borders
+import _borders
 from mahotas.edge import sobel
 
 def border_features(img, labeled, sobelvalues, i, j, border):
@@ -28,7 +28,7 @@ def extract1(img, solution):
     for i in xrange(n_regions):
         for j in xrange(i+1, n_regions):
             output.fill(False)
-            border = borders(labeled, filter, output, i, j, 0)
+            border = _borders.borders(labeled, filter, output, i, j, 0)
             if border is not None:
                 yield border_features(img, labeled, sobelvalues, i, j, border)
 

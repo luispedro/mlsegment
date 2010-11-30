@@ -15,7 +15,6 @@ def extract1(img, solution):
     for i in xrange(n_regions):
         shape = (labeled == (i+1))
         yield shape_features(shape)
-    return val
 
 def shapes(img, solution, shape_model):
     return sum(shape_model.apply(feats) for feats in extract1(img, solution))
