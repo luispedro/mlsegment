@@ -16,3 +16,12 @@ def evaluate(img, solution, parameters, models):
         Li*intensity.apply(img, solution, intensity_model) + \
         Lib*borders.apply(img, solution, iborder_model)
         # Lbb*borders_background(img, solution, bborder_model)
+
+def extract1(img, solution):
+    return map(list,
+            [texture.extract1(img, solution)
+            ,shape.extract1(img, solution)
+            ,intensity.extract1(img, solution)
+            ,borders.extract1(img, solution)
+            ])
+
