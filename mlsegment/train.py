@@ -24,6 +24,10 @@ import segment
 from images import ic100_imgs, ic100_ref
 from jug import TaskGenerator
 import numpy as np
+import texture
+import shape
+import intensity
+import borders
 
 @TaskGenerator
 def get_one(dnaimg, ref):
@@ -61,15 +65,27 @@ def kde_model((features,_)):
     import scipy.stats.kde
     return scipy.stats.kde.gaussian_kde(features.T)
 
+@TaskGenerator
+def apply_all(dnai, ref, models):
+    solution = ref, ref.max()
+    functions = [texture.textures, shape.shapes, intensity.intensity, borders.borders]
+    dna = dnai.get('dna')
+    dnai.unload()
+    return [f(dna, solution, m) for f,m in zip(functions, models)]
+@TaskGenerator
+def adapt(model):
+    model.models[-1] = model.models[-1].models[0][1]
+    model.models[-1] = model.models[-1].models[0]
+    return model
 
 positives = [get_one(dna, ref) for dna,ref in zip(ic100_imgs, ic100_ref)]
 negatives = [get_one(dna, ref) for dna,ref in zip(ic100_imgs, rotate1(ic100_ref))]
 
 feature_labels = [condensate_features(positives, negatives, i)
             for i in xrange(4)]
-models = [train_model(feature_labels[0])
+models = [adapt(train_model(feature_labels[0]))
          ,kde_model(feature_labels[1])
-         ,train_model(feature_labels[2])
-         ,train_model(feature_labels[3])
+         ,adapt(train_model(feature_labels[2]))
+         ,adapt(train_model(feature_labels[3]))
          ]
-
+training = [apply_all(dna, ref, models) for dna,ref in zip(ic100_imgs, ic100_ref)]
