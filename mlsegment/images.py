@@ -27,10 +27,10 @@ import pyslic
 import tempfile
 import os.path
 from os import system
-import pymorph
 from glob import glob
 from scipy import ndimage
 from jug.task import Task
+import readmagick
 from readmagick import readimgfromblob
 
 def readxcf(xcffilename):
@@ -62,7 +62,7 @@ def _load_directory(pattern, stoplist):
     for f in files:
         if extract_number(f) in stoplist: continue
         img = pyslic.Image()
-        img.channels[img.dna_channel] = f
+        img.channels['dna'] = f
         imgs.append(img)
     return imgs
 
@@ -80,19 +80,21 @@ def load_gnf():
     return _load_directory('../data/images/dna-images/gnf/*.png',_gnf_stoplist)
 
 _min_obj_size = 32 
-def load_ref(col,id):
+def load_ref(col, id):
     '''
-    img = load_col_ref(id)
+    img = load_ref(col, id)
 
-    id: either integer or string
+    Parameters
+    ----------
+    col : {'gnf', 'ic100'}
+    id : integer
     '''
-    if type(id) == int:
-        assert col in ('gnf','ic100')
-        path = ('../data/images/segmented-lpc/%s/dna-%s.png' % (col,id))
-        reader = pyslic.readimg
-        if not os.path.exists(path):
-            path = ('../data/images/segmented-lpc/%s/dna-%s.xcf' % (col,id))
-            reader = readxcf
+    assert col in ('gnf','ic100')
+    path = ('../data/images/segmented-lpc/%s/dna-%s.png' % (col,id))
+    reader = readmagick.readimg
+    if not os.path.exists(path):
+        path = ('../data/images/segmented-lpc/%s/dna-%s.xcf' % (col,id))
+        reader = readxcf
     B = getborders(reader(path))
     return _process_B(B)
 
