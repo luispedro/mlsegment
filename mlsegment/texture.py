@@ -9,9 +9,10 @@ def texture_features(texture):
     '''
     features = texture_features(texture)
     '''
-    return features.lbp(texture, 8, 12, ignore_zeros=True)
+    return features.lbp(texture, 8, 6, ignore_zeros=True)
 
 def extract1(img, solution):
+    labeled, n_regions = solution
     features = []
     for i in xrange(n_regions):
         texture = img * (labeled == (i+1))
