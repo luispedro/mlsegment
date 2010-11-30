@@ -23,6 +23,7 @@ from __future__ import division
 import segment
 from images import ic100_imgs, ic100_ref
 from jug import TaskGenerator
+import numpy as np
 
 @TaskGenerator
 def get_one(dnaimg, ref):
@@ -36,5 +37,39 @@ def rotate1(lst):
     lst.append(lst.pop(0))
     return lst
 
+@TaskGenerator
+def condensate_features(positives, negatives, index):
+    if len(np.array(positives[0][index]).shape) == 2:
+        group = np.concatenate
+    else:
+        group = np.vstack
+    pos = group([p[index] for p in positives])
+    negs = group([n[index] for n in negatives])
+    features = np.concatenate((negs,pos))
+    labels = np.zeros(len(features))
+    labels[len(negs):] = 1
+    return features, labels
+
+@TaskGenerator
+def train_model((features,labels)):
+    import milk
+    learner = milk.defaultclassifier()
+    return learner.train(features, labels)
+
+@TaskGenerator
+def kde_model((features,_)):
+    import scipy.stats.kde
+    return scipy.stats.kde.gaussian_kde(features.T)
+
+
 positives = [get_one(dna, ref) for dna,ref in zip(ic100_imgs, ic100_ref)]
 negatives = [get_one(dna, ref) for dna,ref in zip(ic100_imgs, rotate1(ic100_ref))]
+
+feature_labels = [condensate_features(positives, negatives, i)
+            for i in xrange(4)]
+models = [train_model(feature_labels[0])
+         ,kde_model(feature_labels[1])
+         ,train_model(feature_labels[2])
+         ,train_model(feature_labels[3])
+         ]
+
