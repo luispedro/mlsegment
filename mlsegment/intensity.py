@@ -8,7 +8,7 @@ import mahotas
 from mahotas.thresholding import otsu, rc
 
 def _corrcoef(x,y):
-    return np.corrcoef(x,y)[0,1]
+    return np.corrcoef(x.ravel(),y.ravel())[0,1]
 
 def extract1(img, solution):
     labeled, _ = solution
