@@ -16,7 +16,12 @@ def extract1(img, solution):
         shape = (labeled == (i+1))
         yield shape_features(shape)
 
-def shapes(img, solution, shape_model):
-    return np.sum([shape_model(feats) for feats in extract1(img, solution)])
+log_limit = -100
+limit = np.exp(log_limit)
 
-apply = shapes
+def apply(img, solution, shape_model):
+    values = [shape_model(feats) for feats in extract1(img, solution)]
+    values = np.array(values)
+    n = len(values)
+    return (np.sum(np.log(values[values > limit])) + log_limit * np.sum(values <= limit))/n
+shapes = apply
