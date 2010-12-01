@@ -12,7 +12,7 @@
 \newcommand*{\False}{\mbox{False}}
 \newcommand*{\Expected}{\ensuremath{\mathbb{E}}}
 \newcommand{\pd}[2]{\frac{\partial#1}{\partial#2}}
-\newcommand{\pdd}[2]{\frac{\partial^2 #1}{\partial #2^2}} 
+\newcommand{\pdd}[2]{\frac{\partial^2 #1}{\partial #2^2}}
 
 \newcommand*{\error}[1]{{\color{red}\textbf{#1}}}
 \newcommand*{\Assign}{\ensuremath\,:=\,}
@@ -210,9 +210,109 @@ In the end, \alert{two pixels are together iff they are together in all oversegm
 \end{frame}
 
 \begin{frame}[fragile]
+\frametitle{Search Strategy}
+
+\begin{block}{Types of moves}
+\begin{itemize}
+\item Moves within equivalence class.
+\item Illegal moves.
+\item Legal moves.
+\end{itemize}
+\end{block}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Search Strategy}
+
+Look at the whiteboard for moves within equivalence class.
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Search Strategy}
+
+Now look at the whiteboard for illegal moves.
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Search Strategy}
+
+Now look at the whiteboard for 3~types of legal moves.
+
+\begin{itemize}
+\item Flip a whole region to a neighbour's label.
+\item Flip part of a region to a neighbour's label.
+\item Flip part of a region to a new label.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Update rule}
+
+\begin{block}{Whole region move}
+
+\[
+1,2 \rightarrow 12
+\]
+\[
+\Delta v = v(12) - v(1) - v(2)
+\]
+\end{block}
+
+\pause
+
+
+\begin{block}{Part region move}
+
+\[
+1,2 \rightarrow 1',2'
+\]
+\[
+\Delta v = v(1') + v(2') - v(1) - v(2)
+\]
+\end{block}
+
+\begin{block}{Part region move}
+
+\[
+1 \rightarrow 1',3
+\]
+\[
+\Delta v = v(1') + v(4) - v(1)
+\]
+\end{block}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Update rules?}
+
+What about the \alert{intensity} contribution?
+\pause
+Unfortunately, that's a global property.
+\bigskip
+
+Fortunately,
+\begin{itemize}
+\item most moves do not touch the background,
+\item and it is very fast to compute.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
 \frametitle{Data}
 
 Positive data from (Coelho et.\ al, 2009).
+
+\end{frame}
+
+\begin{frame}[fragile]
+
+\centering
+\includegraphics[width=.8\textwidth]{dna}
 
 \end{frame}
 
@@ -223,6 +323,28 @@ Simply mix up the segmentation:\\
 use image $i$ and the mask $i+1$.
 \end{frame}
 
+\begin{frame}[fragile]
+
+\begin{overprint}%
+\centering%
+\only<1>{\includegraphics[width=.8\textwidth]{dna}}%
+\only<2>{\includegraphics[width=.8\textwidth]{dna2}}%
+\par%
+\end{overprint}
+
+\end{frame}
+
+
+
+\begin{frame}[fragile]
+\frametitle{Conclusions}
+
+\begin{itemize}
+\item Choose sensible options, but leave optimising to the machine.
+\item Replace tunable parameters by learned weights.
+\end{itemize}
+
+\end{frame}
 
 \end{document}
 
