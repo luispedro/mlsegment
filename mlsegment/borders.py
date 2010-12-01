@@ -35,6 +35,7 @@ def extract1(img, solution):
 def borders(img, solution, iborder_model):
     return np.mean([iborder_model.apply(feats) for feats in extract1(img, solution)])
 
+apply = borders
 
 #def borders_background(img, solution, bborder_model):
 #    labeled, n_regions = solution

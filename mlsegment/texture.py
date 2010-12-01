@@ -20,3 +20,4 @@ def extract1(img, solution):
 
 def textures(img, solution, texture_model):
     return sum(texture_model.apply(feats) for feats in extract1(img, solution))
+apply = textures

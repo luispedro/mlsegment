@@ -28,3 +28,4 @@ def extract1(img, solution):
 def intensity(img, solution, intensity_model):
     return intensity_model.apply(extract1(img, solution))
 
+apply = intensity

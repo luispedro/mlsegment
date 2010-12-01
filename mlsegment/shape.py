@@ -19,3 +19,4 @@ def extract1(img, solution):
 def shapes(img, solution, shape_model):
     return np.sum([shape_model(feats) for feats in extract1(img, solution)])
 
+apply = shapes
