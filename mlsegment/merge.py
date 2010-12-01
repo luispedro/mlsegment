@@ -35,51 +35,41 @@ class state(object):
         self.recompute_neighbours()
 
 
-def evaluate_whole(state, img, i, j, (parameters, models)):
-    Lt = parameters[0]
-    reg_i = state.ref == i
-    reg_j = state.ref == i
-    reg_ij = reg_i | reg_j
-    def T(reg):
-        from texture import apply1
-        return apply1(img, reg, models[0])
-    return Lt * (T(reg_ij) - T(reg_i) - T(reg_j))
-
-def evaluate_partial(state, img, i, parts, j, (parameters, models)):
-    Lt = parameters[0]
-    reg_i = state.ref == i
-    reg_j = state.ref == i
-    reg_i_ = reg_i.copy()
-    reg_j_ = reg_j.copy()
-    for p in parts:
-        p = (state.over == p)
-        reg_i_ &= ~p
-        reg_j_ |= p
-    def T(reg):
-        from texture import apply1
-        return apply1(img, reg, models[0])
-    return Lt * (T(reg_i_) + T(reg_j_) - T(reg_i) - T(reg_j))
-
-def evaluate_breakup(state, img, i, parts, (parameters, models)):
-    Lt = parameters[0]
-    reg_i = state.ref == i
-    reg_j = np.zeros_like(state.ref)
-    for p in parts:
-        reg_j |= (state.over == p)
-    reg_i_ = (reg_i & ~reg_j)
-    def T(reg):
-        from texture import apply1
-        return apply1(img, reg, models[0])
-    return Lt * (T(reg_i_) + T(reg_j) - T(reg_i))
-
 def evaluate_move(state, img, move, model):
+    def V(reg):
+        from texture import apply1
+        from shape import apply1
+        Lt,Ls,Li,Lb = parameters
+        Mt,Ms,Mi,Mb = models
+        return  Lt * texture.apply1(img, reg, Mt) + \
+                Ls * shape.apply1(img, reg, Ms) + \
+                0.
+
+    parameters, models = model
+    Lt = parameters[0]
     (code, i, parts, j) = move
     if code == 'whole':
-        return evaluate_whole(state, img, i, j, model)
+        reg_i = state.ref == i
+        reg_j = state.ref == i
+        reg_ij = reg_i | reg_j
+        return V(reg_ij) - V(reg_i) - V(reg_j)
     if code == 'partial':
-        return evaluate_partial(state, img, i, parts, j, model)
+        reg_i = state.ref == i
+        reg_j = state.ref == i
+        reg_i_ = reg_i.copy()
+        reg_j_ = reg_j.copy()
+        for p in parts:
+            p = (state.over == p)
+            reg_i_ &= ~p
+            reg_j_ |= p
+        return V(reg_i_) + V(reg_j_) - V(reg_i) - V(reg_j)
     if code == 'breakup':
-        return evaluate_breakup(state, img, i, parts, model)
+        reg_i = state.ref == i
+        reg_j = np.zeros_like(state.ref)
+        for p in parts:
+            reg_j |= (state.over == p)
+        reg_i_ = (reg_i & ~reg_j)
+        return V(reg_i_) + V(reg_j) - V(reg_i)
     raise ValueError('unknown code: ' + code)
 
 def perform_move(state, move):
