@@ -36,15 +36,15 @@ class state(object):
 
 
 def evaluate_move(state, img, move, model):
+    Lt,Ls,Li,Lb = parameters
+    Mt,Ms,Mi,Mb = models
     def V(reg):
         from texture import apply1
         from shape import apply1
-        Lt,Ls,Li,Lb = parameters
-        Mt,Ms,Mi,Mb = models
         return  Lt * texture.apply1(img, reg, Mt) + \
                 Ls * shape.apply1(img, reg, Ms) + \
                 0.
-
+    Icontribution = 0.
     parameters, models = model
     Lt = parameters[0]
     (code, i, parts, j) = move
@@ -52,7 +52,11 @@ def evaluate_move(state, img, move, model):
         reg_i = state.ref == i
         reg_j = state.ref == i
         reg_ij = reg_i | reg_j
-        return V(reg_ij) - V(reg_i) - V(reg_j)
+        if (j == 0):
+            old = st.ref > 0
+            Icontribution = Li * (  intensity.apply(img, old & (self.ref != i), Mi) -
+                                    intensity.apply(img, old, Mi) )
+        return V(reg_ij) - V(reg_i) - V(reg_j) + Icontribution
     if code == 'partial':
         reg_i = state.ref == i
         reg_j = state.ref == i
@@ -62,14 +66,18 @@ def evaluate_move(state, img, move, model):
             p = (state.over == p)
             reg_i_ &= ~p
             reg_j_ |= p
-        return V(reg_i_) + V(reg_j_) - V(reg_i) - V(reg_j)
+        if (j == 0):
+            old = st.ref > 0
+            Icontribution = Li * (  intensity.apply(img, old & ~reg_j_, Mi) -
+                                    intensity.apply(img, old, Mi) )
+        return V(reg_i_) + V(reg_j_) - V(reg_i) - V(reg_j) + Icontribution
     if code == 'breakup':
         reg_i = state.ref == i
         reg_j = np.zeros_like(state.ref)
         for p in parts:
             reg_j |= (state.over == p)
         reg_i_ = (reg_i & ~reg_j)
-        return V(reg_i_) + V(reg_j) - V(reg_i)
+        return V(reg_i_) + V(reg_j) - V(reg_i) + Icontribution
     raise ValueError('unknown code: ' + code)
 
 def perform_move(state, move):
