@@ -77,6 +77,15 @@ def adapt(model):
     model.models[-1] = model.models[-1].models[0][1]
     model.models[-1] = model.models[-1].models[0]
     return model
+@TaskGenerator
+def train_lambdas(training):
+    import numpy as np
+    import scipy.optimize
+    A = np.sum(training, axis=0)
+    f = lambda L : np.dot(A,L)/np.sqrt(np.dot(L,L))
+    x = scipy.optimize.fmin(f, np.ones(len(A)))
+    x /= np.sqrt(np.dot(x,x))
+    return x
 
 positives = [get_one(dna, ref) for dna,ref in zip(ic100_imgs, ic100_ref)]
 negatives = [get_one(dna, ref) for dna,ref in zip(ic100_imgs, rotate1(ic100_ref))]
@@ -89,3 +98,4 @@ models = [adapt(train_model(feature_labels[0]))
          ,adapt(train_model(feature_labels[3]))
          ]
 training = [apply_all(dna, ref, models) for dna,ref in zip(ic100_imgs, ic100_ref)]
+lambdas = train_lambdas(training)
