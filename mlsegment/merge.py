@@ -52,7 +52,7 @@ def evaluate_partial(state, img, i, parts, j, (parameters, models)):
     reg_i_ = reg_i.copy()
     reg_j_ = reg_j.copy()
     for p in parts:
-        p = (st.over == p)
+        p = (state.over == p)
         reg_i_ &= ~p
         reg_j_ |= p
     def T(reg):
@@ -65,7 +65,7 @@ def evaluate_breakup(state, img, i, parts, (parameters, models)):
     reg_i = state.ref == i
     reg_j = np.zeros_like(state.ref)
     for p in parts:
-        reg_j |= (st.over == p)
+        reg_j |= (state.over == p)
     reg_i_ = (reg_i & ~reg_j)
     def T(reg):
         from texture import apply1
@@ -108,16 +108,24 @@ class generate_moves(object):
         else: i = random.choice(np.where(state.in_use)[0])
         if state.n_free_ids > 0 and r() < .2:
             allparts = np.unique(self.over[current == i])
+            if len(allparts) == 0: return self.move(state)
             if len(allparts) == 1: return self.move(state)
             nparts = random.random()
             parts = self.select_parts(current, i, nparts)
             return ('breakup', i, parts, None)
+        (neighs,) = np.where(state.neighbours[i])
+        if len(neighs) == 0:
+            return self.move(state)
         j = random.choice(np.where(state.neighbours[i])[0])
-        if (i == 0) or r() < .5:
-            nparts = random.random()
+        if i == j: return self.move(state)
+        if (j == 0) or r() < .5:
+            nparts = r()
+            if (j == 0):
+                nparts *= r() * .2
             parts = self.select_parts(current, i, nparts)
             allparts = np.unique(self.over[current == i])
             if len(parts) == len(allparts):
+                assert j != 0
                 return ('whole', i, None, j)
             return ('partial', i, parts, j)
         return ('whole', i, None, j)
@@ -125,15 +133,18 @@ class generate_moves(object):
 
     def select_parts(self, current, i, nparts):
         allparts = np.unique(self.over[current == i])
+        if len(allparts) == 0: return []
         if type(nparts) == float:
             nparts = int(nparts * len(allparts))
         ps = [random.choice(allparts)]
         for j in xrange(nparts-1):
             nps = self.ndict[ps[-1]]
             w = np.searchsorted(allparts, nps)
-            w = w[w < len(allparts)]
-            nps = nps[allparts[w] == nps]
-            if nps.size == 0:
+            valid = w < len(allparts)
+            w = w[valid]
+            w = (allparts[w] == nps[valid])
+            nps = nps[w]
+            if len(nps) == 0:
                 break
             ps.append(random.choice(nps))
         return ps
@@ -141,6 +152,6 @@ class generate_moves(object):
 
 def one_move(gm, state, img, model):
     move = gm.move(state)
-    if evaluate_move(st, img, move, model) < 0.0:
+    if evaluate_move(state, img, move, model) < 0.0:
         perform_move(state, move)
 
