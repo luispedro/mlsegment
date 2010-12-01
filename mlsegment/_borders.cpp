@@ -41,6 +41,24 @@ bool borders(numpy::aligned_array<T> array, numpy::aligned_array<T> filter, nump
     }
     return any;
 }
+template<typename T>
+void neighbours(numpy::aligned_array<T> array, numpy::aligned_array<T> filter, numpy::aligned_array<bool> result) {
+    gil_release nogil;
+    const int N = array.size();
+    typename numpy::aligned_array<T>::iterator iter = array.begin();
+    filter_iterator<T> fiter(array.raw_array(), filter.raw_array(), EXTEND_CONSTANT, true);
+    const int N2 = fiter.size();
+
+    for (int ii = 0; ii != N; ++ii, fiter.iterate_with(iter), ++iter) {
+        const T cur = *iter;
+        for (int j = 0; j != N2; ++j) {
+            T val ;
+            if (fiter.retrieve(iter, j, val) && (val != cur)) {
+                result.at(val, cur) = true;
+            }
+        }
+    }
+}
 
 
 PyObject* py_borders(PyObject* self, PyObject* args) {
@@ -86,8 +104,43 @@ PyObject* py_borders(PyObject* self, PyObject* args) {
     return Py_None;
 }
 
+PyObject* py_neighbours(PyObject* self, PyObject* args) {
+    PyArrayObject* array;
+    PyArrayObject* filter;
+    PyArrayObject* output;
+    if (!PyArg_ParseTuple(args,"OOO", &array, &filter, &output)) return NULL;
+    if (!PyArray_Check(array) || !PyArray_Check(filter) || PyArray_TYPE(array) != PyArray_TYPE(filter) ||
+        !PyArray_Check(output) || PyArray_TYPE(output) != NPY_BOOL || !PyArray_ISCARRAY(output)) {
+        PyErr_SetString(PyExc_RuntimeError, TypeErrorMsg);
+        return NULL;
+    }
+    for (int d = 0; d != PyArray_NDIM(array); ++d) {
+        //if (PyArray_DIM(array, d) != PyArray_DIM(output, d)) {
+        //    PyErr_SetString(PyExc_RuntimeError, TypeErrorMsg);
+        //    return NULL;
+        //}
+    }
+    Py_INCREF(output);
+
+    switch(PyArray_TYPE(array)) {
+#define HANDLE(type) \
+        neighbours<type>( \
+                    numpy::aligned_array<type>(array), \
+                    numpy::aligned_array<type>(filter), \
+                    numpy::aligned_array<bool>(output) \
+                    );
+        HANDLE_INTEGER_TYPES();
+#undef HANDLE
+        default:
+        PyErr_SetString(PyExc_RuntimeError, TypeErrorMsg);
+        return NULL;
+    }
+    return PyArray_Return(output);
+}
+
 PyMethodDef methods[] = {
   {"borders",(PyCFunction)py_borders, METH_VARARGS, NULL},
+  {"neighbours",(PyCFunction)py_neighbours, METH_VARARGS, NULL},
   {NULL, NULL,0,NULL},
 };
 
